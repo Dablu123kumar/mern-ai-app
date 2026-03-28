@@ -1,0 +1,9 @@
+{
+  "name": "mern-ai-flow",
+  "version": "1.0.0",
+  "description": "Root package for Render deployment",
+  "scripts": {
+    "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend",
+    "start": "npm start --prefix backend"
+  }
+}
