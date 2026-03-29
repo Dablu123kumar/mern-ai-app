@@ -6,6 +6,13 @@ import cors from "cors";
 import mongoose from "mongoose";
 import path from "path";
 
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Fix __dirname for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -100,13 +107,17 @@ app.get("/api/health", (req, res) =>
 );
 
 // ─── SERVE FRONTEND ───────────────────────────────────
-const __dirname = path.resolve();
+// const __dirname = path.resolve();
 
-// FIXED PATH for Render
-const frontendPath = path.join(__dirname, "src/frontend/dist");
+// FINAL PATH (correct for Render)
+const frontendPath = path.join(__dirname, "../frontend/dist");
 
+console.log("Frontend Path:", frontendPath);
+
+// Serve static files
 app.use(express.static(frontendPath));
 
+// Fallback to React app
 app.get("*", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
