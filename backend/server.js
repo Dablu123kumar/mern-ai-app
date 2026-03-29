@@ -6,7 +6,6 @@ import cors from "cors";
 import mongoose from "mongoose";
 import path from "path";
 
-import path from "path";
 import { fileURLToPath } from "url";
 
 // Fix __dirname for ES Modules
