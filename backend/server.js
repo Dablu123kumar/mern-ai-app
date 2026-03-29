@@ -1,8 +1,10 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const path = require("path");
+
+import dotenv from "dotenv";
+dotenv.config();
+import express from 'express'
+import cors from 'cors'
+import mongoose from "mongoose";
+import path from 'path'
 
 const app = express();
 app.use(cors());
@@ -94,17 +96,22 @@ app.get("/api/history", async (req, res) => {
 // Health check (used for API testing)
 app.get("/api/health", (req, res) => res.json({ status: "ok", message: "MERN AI Flow API running" }));
 
-// ─── Production Static File Serving ───────────────────────────────────────────
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.get("/", (req, res) => res.json({ status: "ok", message: "API running" }));
 
-  app.get("*", (req, res) =>
-    res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"))
-  );
-} else {
-  app.get("/", (req, res) => res.json({ status: "ok", message: "API running" }));
-}
+// ─── SERVE FRONTEND (IMPORTANT for Render) ───────────────
+const __dirname = path.resolve();
 
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
+
+// ─── START SERVER (ALWAYS RUN on Render) ─────────────────
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+// module.exports = app;
+export default app;
