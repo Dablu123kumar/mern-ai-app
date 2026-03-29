@@ -102,10 +102,13 @@ app.get("/api/health", (req, res) =>
 // ─── SERVE FRONTEND ───────────────────────────────────
 const __dirname = path.resolve();
 
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// FIXED PATH for Render
+const frontendPath = path.join(__dirname, "src/frontend/dist");
+
+app.use(express.static(frontendPath));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 // ─── START SERVER ─────────────────────────────────────
