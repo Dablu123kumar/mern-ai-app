@@ -1,22 +1,22 @@
-
 import dotenv from "dotenv";
 dotenv.config();
-import express from 'express'
-import cors from 'cors'
+
+import express from "express";
+import cors from "cors";
 import mongoose from "mongoose";
-import path from 'path'
+import path from "path";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ─── MongoDB Connection ────────────────────────────────────────────────────────
+// ─── MongoDB Connection ───────────────────────────────
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
+// ─── Schema ──────────────────────────────────────────
 const conversationSchema = new mongoose.Schema({
   prompt: { type: String, required: true },
   response: { type: String, required: true },
@@ -25,9 +25,9 @@ const conversationSchema = new mongoose.Schema({
 
 const Conversation = mongoose.model("Conversation", conversationSchema);
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
+// ─── API Routes ──────────────────────────────────────
 
-// POST /api/ask-ai — send prompt to OpenRouter, return AI response
+// AI
 app.post("/api/ask-ai", async (req, res) => {
   const { prompt } = req.body;
 
@@ -41,7 +41,7 @@ app.post("/api/ask-ai", async (req, res) => {
       headers: {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": process.env.SITE_URL || "http://localhost:5173",
+        "HTTP-Referer": process.env.SITE_URL,
         "X-Title": "MERN AI Flow",
       },
       body: JSON.stringify({
@@ -50,22 +50,23 @@ app.post("/api/ask-ai", async (req, res) => {
       }),
     });
 
+    const data = await aiRes.json();
+
     if (!aiRes.ok) {
-      const errData = await aiRes.json();
-      console.error("OpenRouter error:", errData);
-      return res.status(500).json({ error: "AI API request failed.", details: errData });
+      console.error("OpenRouter error:", data);
+      return res.status(500).json({ error: "AI API request failed.", details: data });
     }
 
-    const data = await aiRes.json();
     const answer = data.choices?.[0]?.message?.content || "No response from AI.";
     res.json({ response: answer });
+
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error." });
   }
 });
 
-// POST /api/save — save prompt + response to MongoDB
+// Save
 app.post("/api/save", async (req, res) => {
   const { prompt, response } = req.body;
 
@@ -83,7 +84,7 @@ app.post("/api/save", async (req, res) => {
   }
 });
 
-// GET /api/history — get saved conversations
+// History
 app.get("/api/history", async (req, res) => {
   try {
     const history = await Conversation.find().sort({ createdAt: -1 }).limit(20);
@@ -93,12 +94,12 @@ app.get("/api/history", async (req, res) => {
   }
 });
 
-// Health check (used for API testing)
-app.get("/api/health", (req, res) => res.json({ status: "ok", message: "MERN AI Flow API running" }));
+// Health (keep this)
+app.get("/api/health", (req, res) =>
+  res.json({ status: "ok", message: "API running" })
+);
 
-app.get("/", (req, res) => res.json({ status: "ok", message: "API running" }));
-
-// ─── SERVE FRONTEND (IMPORTANT for Render) ───────────────
+// ─── SERVE FRONTEND ───────────────────────────────────
 const __dirname = path.resolve();
 
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -107,11 +108,9 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
-// ─── START SERVER (ALWAYS RUN on Render) ─────────────────
+// ─── START SERVER ─────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-// module.exports = app;
-export default app;
